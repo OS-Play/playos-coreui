@@ -1,17 +1,18 @@
-#define _POSIX_C_SOURCE 200112L
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
-#include "server.h"
-
+#include "coreui_server.h"
 
 
 int main(int argc, char *argv[]) {
     wlr_log_init(WLR_DEBUG, NULL);
     char *startup_cmd = NULL;
+
+    // TODO: for vmwgfx drm driver
+    setenv("WLR_NO_HARDWARE_CURSORS", "1", 1);
 
     int c;
     while ((c = getopt(argc, argv, "s:h")) != -1) {
@@ -29,23 +30,22 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    struct playos_server *server;
-    server = playos_server_create();
+    struct coreui_server *server;
+    server = coreui_server_create();
     if (!server) {
-        wlr_log(WLR_ERROR, "Failed to create playos_server.");
+        wlr_log(WLR_ERROR, "Failed to create coreui_server.");
         return -1;
     }
-	server->startup_cmd = startup_cmd;
+    server->startup_cmd = startup_cmd;
 
-    if (playos_server_init(server)) {
-        wlr_log(WLR_ERROR, "Failed to init playos_server.");
+    if (coreui_server_init(server)) {
+        wlr_log(WLR_ERROR, "Failed to init coreui_server.");
         goto END;
     }
 
-    playos_server_run(server);
+    coreui_server_run(server);
 
 END:
-    playos_server_destroy(server);
-
+    coreui_server_destroy(server);
     return 0;
 }

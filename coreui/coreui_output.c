@@ -1,13 +1,21 @@
-#include "server.h"
+#include "coreui_server.h"
+#include "coreui_output.h"
+#include "coreui_view.h"
+
+#include "wlr/render/wlr_renderer.h"
+#include "wlr/types/wlr_matrix.h"
+#include "wlr/types/wlr_layer_shell_v1.h"
+#include <wlr/types/wlr_scene.h>
 
 #include <stdlib.h>
+
 
 /* Used to move all of the data necessary to render a surface from the top-level
  * frame handler to the per-surface render function. */
 struct render_data {
     struct wlr_output *output;
     struct wlr_renderer *renderer;
-    struct playos_view *view;
+    struct coreui_view *view;
     struct timespec *when;
 };
 
@@ -15,7 +23,7 @@ static void render_surface(struct wlr_surface *surface,
         int sx, int sy, void *data) {
     /* This function is called for every surface that needs to be rendered. */
     struct render_data *rdata = data;
-    struct playos_view *view = rdata->view;
+    struct coreui_view *view = rdata->view;
     struct wlr_output *output = rdata->output;
 
     /* We first obtain a wlr_texture, which is a GPU resource. wlroots
@@ -73,83 +81,49 @@ static void render_surface(struct wlr_surface *surface,
 }
 
 static void output_frame(struct wl_listener *listener, void *data) {
-    /* This function is called every time an output is ready to display a frame,
+        /* This function is called every time an output is ready to display a frame,
      * generally at the output's refresh rate (e.g. 60Hz). */
-    struct playos_output *output =
-        wl_container_of(listener, output, frame);
-    struct wlr_renderer *renderer = output->server->renderer;
+    struct coreui_output *output = wl_container_of(listener, output, frame);
+    struct wlr_scene *scene = output->server->scene;
+
+    struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
+        scene, output->wlr_output);
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
 
-    /* wlr_output_attach_render makes the OpenGL context current. */
-    if (!wlr_output_attach_render(output->wlr_output, NULL)) {
-        return;
-    }
-    /* The "effective" resolution can change if you rotate your outputs. */
-    int width, height;
-    wlr_output_effective_resolution(output->wlr_output, &width, &height);
-    /* Begin the renderer (calls glViewport and some other GL sanity checks) */
-    wlr_renderer_begin(renderer, width, height);
+    // struct coreui_view *view;
+    // wl_list_for_each_reverse(view, &output->server->ui_views, link) {
+    //     struct render_data rdata = {
+    //         .output = output->wlr_output,
+    //         .view = view,
+    //         .renderer = output->server->renderer,
+    //         .when = &now,
+    //     };
 
-    float color[4] = {1.0, 1.0, 1.0, 1.0};
-    wlr_renderer_clear(renderer, color);
+    //     wlr_layer_surface_v1_for_each_surface(view->layer_surface,
+    //             render_surface, &rdata);
+    // }
 
-    /* Each subsequent window we render is rendered on top of the last. Because
-     * our view list is ordered front-to-back, we iterate over it backwards. */
-    struct playos_view *view;
+    /* Render the scene if needed and commit the output */
+    wlr_scene_output_commit(scene_output);
 
-    wl_list_for_each_reverse(view, &output->server->ui_views, link) {
-        if (!view->mapped) {
-            continue;
-        }
+    wlr_scene_output_send_frame_done(scene_output, &now);
+}
 
-        struct render_data rdata = {
-            .output = output->wlr_output,
-            .view = view,
-            .renderer = renderer,
-            .when = &now,
-        };
+static void output_destroy(struct wl_listener *listener, void *data) {
+    struct coreui_output *output = wl_container_of(listener, output, destroy);
 
-        wlr_layer_surface_v1_for_each_surface(view->layer_surface,
-                render_surface, &rdata);
-    }
-
-    wl_list_for_each_reverse(view, &output->server->views, link) {
-        if (!view->mapped) {
-            /* An unmapped view should not be rendered. */
-            continue;
-        }
-        struct render_data rdata = {
-            .output = output->wlr_output,
-            .view = view,
-            .renderer = renderer,
-            .when = &now,
-        };
-        /* This calls our render_surface function for each surface among the
-         * xdg_surface's toplevel and popups. */
-        wlr_xdg_surface_for_each_surface(view->xdg_surface,
-                render_surface, &rdata);
-    }
-
-    /* Hardware cursors are rendered by the GPU on a separate plane, and can be
-     * moved around without re-rendering what's beneath them - which is more
-     * efficient. However, not all hardware supports hardware cursors. For this
-     * reason, wlroots provides a software fallback, which we ask it to render
-     * here. wlr_cursor handles configuring hardware vs software cursors for you,
-     * and this function is a no-op when hardware cursors are in use. */
-    wlr_output_render_software_cursors(output->wlr_output, NULL);
-
-    /* Conclude rendering and swap the buffers, showing the final frame
-     * on-screen. */
-    wlr_renderer_end(renderer);
-    wlr_output_commit(output->wlr_output);
+    wl_list_remove(&output->frame.link);
+    wl_list_remove(&output->destroy.link);
+    wl_list_remove(&output->link);
+    free(output);
 }
 
 static void server_new_output(struct wl_listener *listener, void *data) {
     /* This event is rasied by the backend when a new output (aka a display or
      * monitor) becomes available. */
-    struct playos_server *server =
+    struct coreui_server *server =
         wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
 
@@ -172,28 +146,24 @@ static void server_new_output(struct wl_listener *listener, void *data) {
     }
 
     /* Allocates and configures our state for this output */
-    struct playos_output *output =
-        calloc(1, sizeof(struct playos_output));
+    struct coreui_output *output =
+        calloc(1, sizeof(struct coreui_output));
     output->wlr_output = wlr_output;
     output->server = server;
     /* Sets up a listener for the frame notify event. */
     output->frame.notify = output_frame;
     wl_signal_add(&wlr_output->events.frame, &output->frame);
+
+    /* Sets up a listener for the destroy notify event. */
+    output->destroy.notify = output_destroy;
+    wl_signal_add(&wlr_output->events.destroy, &output->destroy);
+
     wl_list_insert(&server->outputs, &output->link);
 
-    /* Adds this to the output layout. The add_auto function arranges outputs
-     * from left-to-right in the order they appear. A more sophisticated
-     * compositor would let the user configure the arrangement of outputs in the
-     * layout.
-     *
-     * The output layout utility automatically adds a wl_output global to the
-     * display, which Wayland clients can see to find out information about the
-     * output (such as DPI, scale factor, manufacturer, etc).
-     */
     wlr_output_layout_add_auto(server->output_layout, wlr_output);
 }
 
-int playos_output_init(struct playos_server *server)
+int coreui_output_init(struct coreui_server *server)
 {
     /* Creates an output layout, which a wlroots utility for working with an
      * arrangement of screens in a physical layout. */
