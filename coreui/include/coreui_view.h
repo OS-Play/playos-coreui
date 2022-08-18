@@ -6,35 +6,47 @@
 
 COREUI_EXTERN_BEGIN
 
-enum coreui_view_type {
-    COREUI_VIEW_XDG_SHELL,
-    COREUI_VIEW_LAYER_SHELL,
+struct coreui_view_operations {
+    /**
+     * @brief Invoke on view get focus
+     * 
+     */
+    void (*focus)(struct coreui_view *view);
+    /**
+     * @brief Invoke on view get blur
+     * 
+     */
+    void (*blur)(struct coreui_view *view);
+    /**
+     * @brief Invoke on view resize
+     * 
+     */
+    void (*resize)(struct coreui_view *view, int left, int right, int top, int bottom);
+    void (*move)(struct coreui_view *view, int x, int y);
+    void (*on_drag)(struct coreui_view *view, int x, int y);
+    void (*on_drop)(struct coreui_view *view, int x, int y);
 };
 
 struct coreui_view {
     struct wl_list link;
     struct coreui_server *server;
-
-    enum coreui_view_type type;
-
-    union {
-        struct wlr_xdg_toplevel *xdg_toplevel;
-        struct wlr_scene_layer_surface_v1 *layer_surface;
-    } view;
+    struct coreui_output *output;
 
     struct wlr_scene_tree *scene_tree;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
-    struct wl_listener request_move;
-    struct wl_listener request_resize;
-    struct wl_listener request_maximize;
-    struct wl_listener request_fullscreen;
+    struct wlr_surface *surface;
+
     int x, y;
+
+    struct coreui_view_operations *vops;
 };
 
-int coreui_view_init(struct coreui_server *server);
-void coreui_view_focus(struct coreui_view *view, struct wlr_surface *surface);
+int coreui_views_init(struct coreui_server *server);
+
+void coreui_view_init(struct coreui_view *view, struct coreui_server *server,
+        struct wlr_surface *surface);
+void coreui_view_focus(struct coreui_view *view);
+void coreui_view_blur(struct coreui_view *view);
+void coreui_view_resize(struct coreui_view *view, int left, int right, int top, int bottom);
 
 COREUI_EXTERN_END
 

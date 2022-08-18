@@ -1,2 +1,13 @@
 .vscode/
 .DS_Store
+build/
+
+flutter_embedder/coreui_keymap.cpp
+flutter_embedder/coreui_keymap.h
+flutter_embedder/internal/coreui_channel.cpp
+flutter_embedder/internal/coreui_channel.h
+flutter_embedder/internal/coreui_messenger.cpp
+flutter_embedder/internal/coreui_messenger.h
+flutter_embedder/internal/coreui_plugin_registrar.cpp
+flutter_embedder/internal/coreui_plugin_registrar.h
+modules/wallpaper-old/

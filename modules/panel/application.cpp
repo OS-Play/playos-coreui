@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <memory>
 
+#define PANEL_HEIGHT 32
+
 namespace playos {
 
 PanelApplication::PanelApplication(int argc, char *argv[], const char *assetsPath, const char *icudtl):
@@ -25,9 +27,13 @@ std::shared_ptr<Window> PanelApplication::createDefaultWindow()
     auto surface = SurfaceFactory::instance().createSurface(ctx, CoreuiSurface::LayerShell);
     auto surf = std::dynamic_pointer_cast<LayerShellSurface>(surface);
 
-    surf->setSize(output->width, 64);
+    surf->setSize(output->width, PANEL_HEIGHT);
+    surf->setLayer(LayerShellSurface::LayerBottom);
+    surf->setExclusiveZone(PANEL_HEIGHT);
+    surf->setAnchor(LayerShellSurface::AnchorTop);
+    surf->setNamespace("coreui_panel");
 
-    return std::shared_ptr<Window>(createWindow(surface, "main", output->width, 64));
+    return std::shared_ptr<Window>(createWindow(surface, "main", output->width, PANEL_HEIGHT));
 }
 
 }

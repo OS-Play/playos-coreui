@@ -1,6 +1,7 @@
 #include "input/coreui_keyboard.h"
 
 #include "coreui_view.h"
+#include <wlr/types/wlr_xdg_shell.h>
 
 #include <stdlib.h>
 
@@ -34,17 +35,12 @@ static bool handle_keybinding(struct coreui_server *server, xkb_keysym_t sym) {
     case XKB_KEY_Escape:
         wl_display_terminate(server->display);
         break;
-    case XKB_KEY_F1:
-        /* Cycle to the next view */
-        if (wl_list_length(&server->views) < 2) {
-            break;
-        }
-        struct coreui_view *next_view = wl_container_of(
-            server->views.prev, next_view, link);
+    // case XKB_KEY_F1:
+    //     struct coreui_view *next_view = wl_container_of(
+    //         server->views.prev, next_view, link);
 
-        if (next_view->type == COREUI_VIEW_XDG_SHELL)
-            coreui_view_focus(next_view, next_view->view.xdg_toplevel->base->surface);
-        break;
+    //     coreui_view_focus(next_view);
+    //     break;
     default:
         return false;
     }

@@ -6,7 +6,7 @@
 #include <wayland-client.h>
 
 #include "wl_context.h"
-#include "private/ouput.h"
+#include "ouput.h"
 
 
 
@@ -71,13 +71,13 @@ static struct wl_output_listener wl_output_listener = {
 
 struct coreui_output *coreui_output_create(struct wl_context *ctx, struct wl_output *_output)
 {
-    struct coreui_output *output = malloc(sizeof(struct coreui_output));
+    struct coreui_output *output = (struct coreui_output *)calloc(1, sizeof(struct coreui_output));
     if (output == NULL) {
         errno = ENOMEM;
         return NULL;
     }
 
-    memset(output, 0, sizeof(*output));
+    wl_list_init(&output->link);
     output->wl_output = _output;
     output->ctx = ctx;
 

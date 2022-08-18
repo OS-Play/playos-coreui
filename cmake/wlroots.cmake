@@ -61,3 +61,4 @@ add_dependencies(${WLR_LIB} ${WLR_LIB}_build)
 set_target_properties(${WLR_LIB} PROPERTIES IMPORTED_LOCATION
     ${WLR_BINARY_DIR}/lib/libwlroots.so
     INTERFACE_INCLUDE_DIRECTORIES ${WLR_BINARY_DIR}/include)
+include_directories(${WLR_BINARY_DIR}/include)

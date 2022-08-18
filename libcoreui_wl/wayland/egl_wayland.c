@@ -1,4 +1,4 @@
-#include "private/egl_wayland.h"
+#include "egl_wayland.h"
 #include "wl_context.h"
 
 #include <sys/errno.h>

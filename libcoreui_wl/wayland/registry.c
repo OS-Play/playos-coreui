@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "private/input.h"
+#include "input.h"
 
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 #include "xdg-shell-protocol.h"

@@ -16,10 +16,10 @@
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_xcursor_manager.h>
-#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 
 #include "shell/coreui_layer_shell.h"
+#include "shell/coreui_xdg_shell.h"
 #include "coreui_utils.h"
 
 COREUI_EXTERN_BEGIN
@@ -36,13 +36,10 @@ struct coreui_server {
     struct wlr_backend *backend;
     struct wlr_allocator *allocator;
     struct wlr_renderer *renderer;
-    struct wlr_scene *scene;
 
-    struct wlr_xdg_shell *xdg_shell;
-    struct wl_listener new_xdg_surface;
-    struct wl_list views;
-
+    struct coreui_xdg_shell *xdg_shell;
     struct coreui_layer_shell *layer_shell;
+    struct coreui_fullscreen_shell *fullscreen_shell;
 
     struct wlr_cursor *cursor;
     struct wlr_xcursor_manager *cursor_mgr;
@@ -63,9 +60,7 @@ struct coreui_server {
     struct wlr_box grab_geobox;
     uint32_t resize_edges;
 
-    struct wlr_output_layout *output_layout;
-    struct wl_list outputs;
-    struct wl_listener new_output;
+    struct coreui_output_manager *output_manager;
 
     int argc;
     char **argv;

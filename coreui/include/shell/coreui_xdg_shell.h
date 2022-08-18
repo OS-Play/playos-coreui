@@ -6,6 +6,13 @@
 
 COREUI_EXTERN_BEGIN
 
+struct coreui_xdg_shell {
+    struct coreui_server *server;
+    struct wlr_xdg_shell *xdg_shell;
+
+    struct wl_listener new_xdg_surface;
+};
+
 int coreui_xdg_shell_init(struct coreui_server *server);
 
 COREUI_EXTERN_END

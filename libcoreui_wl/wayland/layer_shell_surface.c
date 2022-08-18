@@ -1,16 +1,15 @@
 #include "wl_context.h"
 
-#include "private/ouput.h"
+#include "ouput.h"
 #include <wayland-client.h>
 #include <stdio.h>
 #include <GLES2/gl2.h>
 
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 
-#include "private/layer_shell_config.h"
+#include "layer_shell_config.h"
+#include "coreui/wayland/surface.h"
 
-
-#define ZONE "coreui"
 
 
 void layer_surface_configure(void *data,
@@ -33,13 +32,13 @@ static struct zwlr_layer_surface_v1_listener layer_surface_listener = {
     .closed = layer_surface_closed,
 };
 
-struct zwlr_layer_surface_v1 *layer_shell_surface_create(struct wl_surface *surface, 
+struct zwlr_layer_surface_v1 *layer_shell_surface_create(struct coreui_surface *surface, 
         struct wl_context *ctx, struct layer_shell_config *config)
 {
-    struct coreui_output *output = ctx->outputs[0];
+    struct coreui_output *output = wl_context_getCurrentOutput(ctx);
 
     struct zwlr_layer_surface_v1 *layer_surface = zwlr_layer_shell_v1_get_layer_surface(ctx->layer_shell,
-            surface, output->wl_output, config->layer, ZONE);
+            surface->surface, output->wl_output, config->layer, config->namespace_);
 
     // zwlr_layer_surface_v1_set_keyboard_interactivity(
     //         ctx->layer_surface, keyboard_interactive);
@@ -66,23 +65,3 @@ void layer_shell_setup(struct zwlr_layer_surface_v1 *layer_surface, struct layer
     zwlr_layer_surface_v1_set_margin(layer_surface, config->top, config->right, config->bottom, config->left);
     zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, config->zone);
 }
-
-// void layer_shell_surface_set_size(struct zwlr_layer_surface_v1 *layer_surface, uint32_t width, uint32_t height)
-// {
-//     zwlr_layer_surface_v1_set_size(layer_surface, width, height);
-// }
-
-// void layer_shell_surface_set_anchor(struct zwlr_layer_surface_v1 *layer_surface, uint32_t anchor)
-// {
-//     zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
-// }
-
-// void layer_shell_surface_set_margin(struct zwlr_layer_surface_v1 *layer_surface, int32_t top, int32_t right, int32_t bottom, int32_t left)
-// {
-//     zwlr_layer_surface_v1_set_margin(layer_surface, top, right, bottom, left);
-// }
-
-// void layer_shell_surface_set_exclusive_zone(struct zwlr_layer_surface_v1 *zwlr_layer_surface_v1, int32_t zone)
-// {
-//     zwlr_layer_surface_v1_set_exclusive_zone(zwlr_layer_surface_v1, zone);
-// }

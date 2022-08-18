@@ -40,6 +40,7 @@ public:
     void setAnchor(enum Anchor anchor);
     void setMargin(int32_t top, int32_t right, int32_t bottom, int32_t left);
     void setExclusiveZone(int32_t zone);
+    void setNamespace(const char *namespace_);
 
     void onCreate();
     void setup();

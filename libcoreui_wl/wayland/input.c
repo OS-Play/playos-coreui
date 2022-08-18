@@ -1,19 +1,21 @@
-#include "private/input.h"
+#include "input.h"
 
 #include "wl_context.h"
 
 #include <assert.h>
 #include <stdio.h>
-
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/mman.h>
 
 
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer,
         uint32_t serial, struct wl_surface *surface,
         wl_fixed_t surface_x, wl_fixed_t surface_y) {
     struct wl_cursor_image *image;
-    struct wl_context *ctx = data;
+    struct wl_context *ctx = (struct wl_context *)data;
 
-printf("wl_pointer_enter: %p\n", wl_pointer);
     // if (surface == ctx->popup_wl_surface) {
     //     image = popup_cursor_image;
     // } else {
@@ -27,52 +29,68 @@ printf("wl_pointer_enter: %p\n", wl_pointer);
     wl_pointer_set_cursor(wl_pointer, serial, ctx->cursor_surface,
         image->hotspot_x, image->hotspot_y);
     // input_surface = surface;
+
+    struct input_event event = {
+        .surface = surface,
+        .type = EVENT_MOUSE,
+        .mouse = {
+            .type = MOUSE_ENTER,
+            .x = wl_fixed_to_int(surface_x),
+            .y = wl_fixed_to_int(surface_y),
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_pointer_leave(void *data, struct wl_pointer *wl_pointer,
         uint32_t serial, struct wl_surface *surface) {
-    // cur_x = cur_y = -1;
-    // buttons = 0;
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    struct input_event event = {
+        .surface = surface,
+        .type = EVENT_MOUSE,
+        .mouse = {
+            .type = MOUSE_LEAVE,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_pointer_motion(void *data, struct wl_pointer *wl_pointer,
         uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
+    struct wl_context *ctx = (struct wl_context *)data;
+
     int cur_x = wl_fixed_to_int(surface_x);
     int cur_y = wl_fixed_to_int(surface_y);
 
-    printf(">>>>>: %d, %d\n", cur_x, cur_y);
+    struct input_event event = {
+        .type = EVENT_MOUSE,
+        .mouse = {
+            .type = MOUSE_MOVE,
+            .x = cur_x,
+            .y = cur_y,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer,
         uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
-    printf(">>>>>: %d, %d\n", button, state);
-    // if (input_surface == wl_surface) {
-    //     if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-    //         if (button == BTN_RIGHT) {
-    //             if (popup_wl_surface) {
-    //                 popup_destroy();
-    //             } else {
-    //                 create_popup(serial);
-    //             }
-    //         } else {
-    //             buttons++;
-    //         }
-    //     } else {
-    //         if (button != BTN_RIGHT) {
-    //             buttons--;
-    //         }
-    //     }
-    // } else if (input_surface == popup_wl_surface) {
-    //     if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-    //         if (button == BTN_LEFT && popup_red <= 0.9f) {
-    //             popup_red += 0.1;
-    //         } else if (button == BTN_RIGHT && popup_red >= 0.1f) {
-    //             popup_red -= 0.1;
-    //         }
-    //     }
-    // } else {
-    //     assert(false && "Unknown surface");
-    // }
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    struct input_event event = {
+        .type = EVENT_MOUSE,
+        .mouse = {
+            .type = MOUSE_BUTTON,
+            .button = button,
+            .state = state,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
@@ -114,28 +132,89 @@ static struct wl_pointer_listener pointer_listener = {
 
 static void wl_keyboard_keymap(void *data, struct wl_keyboard *wl_keyboard,
         uint32_t format, int32_t fd, uint32_t size) {
-    // Who cares
+    struct wl_context *ctx = (struct wl_context *)data;
+    void *buf;
+
+    buf = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (buf == MAP_FAILED) {
+        fprintf(stderr, "Failed to mmap keymap: %d\n", errno);
+        close(fd);
+        return;
+    }
+
+    ctx->xkb_keymap = xkb_keymap_new_from_buffer(ctx->xkb_ctx, buf, size - 1,
+                                              XKB_KEYMAP_FORMAT_TEXT_V1,
+                                              XKB_KEYMAP_COMPILE_NO_FLAGS);
+    munmap(buf, size);
+    close(fd);
+    if (!ctx->xkb_keymap) {
+        fprintf(stderr, "Failed to compile keymap!\n");
+        return;
+    }
+
+    ctx->xkb_state = xkb_state_new(ctx->xkb_keymap);
+    if (!ctx->xkb_state) {
+        fprintf(stderr, "Failed to create XKB state!\n");
+        return;
+    }
 }
 
 static void wl_keyboard_enter(void *data, struct wl_keyboard *wl_keyboard,
         uint32_t serial, struct wl_surface *surface, struct wl_array *keys) {
-    fprintf(stderr, "Keyboard enter\n");
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    struct input_event event = {
+        .surface = surface,
+        .type = EVENT_KEYBOARD,
+        .keyboard = {
+            .type = KEYBOARD_ENTER,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_keyboard_leave(void *data, struct wl_keyboard *wl_keyboard,
         uint32_t serial, struct wl_surface *surface) {
-    fprintf(stderr, "Keyboard leave\n");
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    struct input_event event = {
+        .surface = surface,
+        .type = EVENT_KEYBOARD,
+        .keyboard = {
+            .type = KEYBOARD_LEAVE,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_keyboard_key(void *data, struct wl_keyboard *wl_keyboard,
         uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
-    fprintf(stdout, "Key event: %d %d\n", key, state);
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    key += 8;
+    struct input_event event = {
+        .type = EVENT_KEYBOARD,
+        .keyboard = {
+            .type = KEYBOARD_KEY,
+            .keycode = key,
+            .keyval = xkb_state_key_get_one_sym(ctx->xkb_state, key),
+            .mods = xkb_state_key_get_consumed_mods2(ctx->xkb_state, key, XKB_CONSUMED_MODE_GTK),
+            .state = state,
+        }
+    };
+
+    wl_context_dispatchInputEvent(ctx, &event);
 }
 
 static void wl_keyboard_modifiers(void *data, struct wl_keyboard *wl_keyboard,
         uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
         uint32_t mods_locked, uint32_t group) {
-    // Who cares
+    struct wl_context *ctx = (struct wl_context *)data;
+
+    xkb_state_update_mask(ctx->xkb_state, mods_depressed, mods_latched,
+                        mods_locked, 0, 0, group);
 }
 
 static void wl_keyboard_repeat_info(void *data, struct wl_keyboard *wl_keyboard,
@@ -247,7 +326,7 @@ void input_pointer_init(struct wl_context *ctx)
         wl_cursor_theme_load(NULL, 16, ctx->shm);
     assert(cursor_theme);
     struct wl_cursor *cursor =
-        wl_cursor_theme_get_cursor(cursor_theme, "crosshair");
+        wl_cursor_theme_get_cursor(cursor_theme, "default");
     if (cursor == NULL) {
         cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
     }

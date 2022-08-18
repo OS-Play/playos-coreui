@@ -1,6 +1,6 @@
 #include "wl_context.hxx"
-#include "private/egl_wayland.h"
-#include "private/ouput.h"
+#include "egl_wayland.h"
+#include "ouput.h"
 #include "wl_context.h"
 
 #include <errno.h>
@@ -51,9 +51,9 @@ int WLContext::init()
     return 0;
 }
 
-void *WLContext::createNativeWindow(struct wl_surface *surface, int width, int height)
+void *WLContext::createNativeWindow(struct coreui_surface *surface, int width, int height)
 {
-    wl_egl_window *egl_window = egl_wayland_createWindow(surface, width, height);
+    wl_egl_window *egl_window = egl_wayland_createWindow(surface->surface, width, height);
     if (egl_window == nullptr) {
         errno = ENOENT;
         return nullptr;
@@ -84,8 +84,25 @@ WLContext *WLContext::createResourceContext()
 
 struct coreui_output *WLContext::getCurrentOutput()
 {
-    // TODO: Fix me
-    return outputs[0];
+    return wl_context_getCurrentOutput(ctx);
+}
+
+struct xdg_wm_base *WLContext::xdgWmBase() {
+    return ctx->xdg_wm_base;
+}
+
+std::string WLContext::getKeyUTF8(uint32_t keycode)
+{
+    int size = xkb_state_key_get_utf8(ctx->xkb_state, key_t(keycode), NULL, 0);
+    if (size > 0) {
+        char buff[size + 1];
+        xkb_state_key_get_utf8(ctx->xkb_state, key_t(keycode), buff, size+1);
+        buff[size] = '\0';
+
+        return std::string(buff);
+    }
+
+    return "";
 }
 
 }

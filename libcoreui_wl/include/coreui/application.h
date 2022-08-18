@@ -11,12 +11,12 @@
 namespace playos {
 
 class Application {
-protected:
-    virtual int update() = 0;
-    virtual int draw() = 0;
-
 public:
-    virtual int init();
+    int init();
+
+    static Application *instance() {
+        return sApp;
+    }
 
 public:
     Application(int argc, char **argv);
@@ -35,10 +35,15 @@ public:
     Window *createWindow(const char *title, int width, int height);
     Window *createWindow(std::shared_ptr<CoreuiSurface> &surface, const char *title, int width, int height);
 
+    void handleDisplayEvent(Task *task, int events);
+    void displayflushAndDispatchPending(Task *task, int events);
 public:
     static std::string getRealpath(const std::string &path);
     static std::string getRealpath(const char *path);
     static std::string execPath(const char *path);
+
+protected:
+    virtual int onInit() { return 0; }
 
 protected:
     int argc;
@@ -47,8 +52,13 @@ protected:
 private:
     std::shared_ptr<WLContext> m_ctx;
     std::unique_ptr<EventLoop> m_loop;
+    Task m_displayEvent;
+    Task m_displayFDPTask;
 
     std::once_flag m_initFlag;
+
+private:
+    static Application *sApp;
 };
 
 }

@@ -1,7 +1,9 @@
 #include "input/coreui_pointer.h"
 #include "coreui_view.h"
+#include "coreui_output_manager.h"
 
 #include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 
 static struct coreui_view *desktop_view_at(
@@ -10,8 +12,9 @@ static struct coreui_view *desktop_view_at(
     /* This returns the topmost node in the scene at the given layout coords.
      * we only care about surface nodes as we are specifically looking for a
      * surface in the surface tree of a coreui_view. */
+    struct wlr_scene *scene = coreui_output_manager_get_scene(server->output_manager);
     struct wlr_scene_node *node = wlr_scene_node_at(
-        &server->scene->tree.node, lx, ly, sx, sy);
+            &scene->tree.node, lx, ly, sx, sy);
     if (node == NULL || node->type != WLR_SCENE_NODE_BUFFER) {
         return NULL;
     }
@@ -82,15 +85,7 @@ static void process_cursor_resize(struct coreui_server *server, uint32_t time) {
         }
     }
 
-    struct wlr_box geo_box;
-    wlr_xdg_surface_get_geometry(view->view.xdg_toplevel->base, &geo_box);
-    view->x = new_left - geo_box.x;
-    view->y = new_top - geo_box.y;
-    wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
-
-    int new_width = new_right - new_left;
-    int new_height = new_bottom - new_top;
-    wlr_xdg_toplevel_set_size(view->view.xdg_toplevel, new_width, new_height);
+    coreui_view_resize(view, new_left, new_right, new_top, new_bottom);
 }
 
 static void process_cursor_motion(struct coreui_server *server, uint32_t time) {
@@ -187,8 +182,7 @@ static void server_cursor_button(struct wl_listener *listener, void *data) {
         server->cursor_mode = COREUI_CURSOR_PASSTHROUGH;
     } else {
         /* Focus that client if the button was _pressed_ */
-        if (view && view->type == COREUI_VIEW_XDG_SHELL)
-           coreui_view_focus(view, surface);
+        coreui_view_focus(view);
     }
 }
 
@@ -222,7 +216,8 @@ void coreui_pointer_init(struct coreui_server *server)
      * image shown on screen.
      */
     server->cursor = wlr_cursor_create();
-    wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
+    wlr_cursor_attach_output_layout(server->cursor,
+            coreui_output_manager_get_output_layout(server->output_manager));
 
     /* Creates an xcursor manager, another wlroots utility which loads up
      * Xcursor themes to source cursor images from and makes sure that cursor

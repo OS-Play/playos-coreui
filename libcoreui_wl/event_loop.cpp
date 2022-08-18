@@ -1,8 +1,6 @@
 #include "coreui/event_loop.h"
 #include "coreui/log.h"
 
-#include "wayland/wl_context.hxx"
-
 #include <string.h>
 #include <errno.h>
 #include <memory>
@@ -11,7 +9,7 @@
 #include <stdio.h>
 
 #include <unistd.h>
-#include <sys/epoll.h>
+
 
 namespace playos {
 
@@ -19,13 +17,13 @@ Task::Task(const std::function<void(Task *task, int events)> &cb): run(cb)
 {
 }
 
-EventLoop::EventLoop(std::shared_ptr<WLContext> &ctx):m_running(false), ctx(ctx)
+EventLoop::EventLoop():m_running(false)
 {
 }
 
-EventLoop *EventLoop::create(std::shared_ptr<WLContext> &ctx)
+EventLoop *EventLoop::create()
 {
-    EventLoop *loop = new EventLoop(ctx);
+    EventLoop *loop = new EventLoop();
     if (loop->init()) {
         delete loop;
         return nullptr;
@@ -37,48 +35,41 @@ EventLoop *EventLoop::create(std::shared_ptr<WLContext> &ctx)
 EventLoop::~EventLoop()
 {
     exit();
-    removeWatchFd(ctx->getDisplayFd());
     close(m_epoll);
 }
 
 int EventLoop::init()
 {
-    wl_list_init(&postTasks);
+    wl_list_init(&m_postTasks);
 
     m_epoll = epoll_create1(EPOLL_CLOEXEC);
     if (m_epoll <= 0) {
         return -1;
     }
-
-    m_displayEvent.run = std::bind(&EventLoop::handleDisplayEvent, this,
-        std::placeholders::_1, std::placeholders::_2);
-
-    if (addWatchFd(ctx->getDisplayFd(), &m_displayEvent) != 0) {
-        return -1;
-    }
+    m_mainThreadId = std::this_thread::get_id();
 
     return 0;
+}
+
+bool EventLoop::runOnCurrentThread()
+{
+    return m_mainThreadId == std::this_thread::get_id();
 }
 
 int EventLoop::exec()
 {
     int ret = 0, count;
-    Task *task;
+    Task *task, *tmp;
     struct epoll_event evs[16];
-
-    if (ctx == nullptr) {
-        return -1;
-    }
 
     m_running = true;
     while (m_running) {
-        while (!wl_list_empty(&postTasks)) {
-            task = wl_container_of(postTasks.prev, task, link);
-            wl_list_remove(&task->link);
+
+        wl_list_for_each_safe(task, tmp, &m_postTasks, link) {
+            if (task->mode == Task::Once)
+                wl_list_remove(&task->link);
             task->run(task, 0);
         }
-
-        ctx->dispatchPending();
 
         count = epoll_wait(m_epoll, evs, sizeof(evs)/sizeof(struct epoll_event), -1);
         for (int i = 0; i < count; i++) {
@@ -90,16 +81,25 @@ int EventLoop::exec()
     return ret;
 }
 
-void EventLoop::post(Task *task)
+void EventLoop::post(Task *task, Task::Mode mode)
 {
-    wl_list_insert(&postTasks, &task->link);
+    if (!runOnCurrentThread()) {
+        m_mutex.lock();
+    }
+
+    task->mode = mode;
+    wl_list_insert(&m_postTasks, &task->link);
+
+    if (!runOnCurrentThread()) {
+        m_mutex.unlock();
+    }
 }
 
-int EventLoop::addWatchFd(int fd, Task *task)
+int EventLoop::addWatchFd(int fd, Task *task, int events)
 {
     struct epoll_event event;
     event.data.ptr = task;
-    event.events = EPOLLIN | EPOLLOUT | EPOLLHUP;
+    event.events = events;
 
     return epoll_ctl(m_epoll, EPOLL_CTL_ADD, fd, &event);
 }
@@ -112,24 +112,6 @@ void EventLoop::removeWatchFd(int fd)
 void EventLoop::exit()
 {
     m_running = false;
-}
-
-void EventLoop::handleDisplayEvent(Task *task, int events)
-{
-    int ret = 0;
-
-    if (events & EPOLLIN) {
-        ret = ctx->dispatch();
-        if (ret == -1) {
-            LOG_ERROR("EventLoop", "Context dispatch error: %s\n", strerror(errno));
-            m_running = false;
-            return;
-        }
-    }
-
-    if (events & EPOLLOUT) {
-        ctx->flush();
-    }
 }
 
 }

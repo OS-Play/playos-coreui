@@ -1,8 +1,8 @@
 #ifndef __PLAYOS_WL_CONTEXT_HXX__
 #define __PLAYOS_WL_CONTEXT_HXX__
 
-#include "private/egl_wayland.h"
-#include "private/ouput.h"
+#include "egl_wayland.h"
+#include "ouput.h"
 #include "wl_context.h"
 #include "coreui/wayland/surface.h"
 
@@ -30,13 +30,13 @@ public:
     WLContext& operator=(WLContext const&) = delete;
 
 
-    void *createNativeWindow(struct wl_surface *surface, int width, int height);
+    void *createNativeWindow(struct coreui_surface *surface, int width, int height);
     void *createEGLSurface(void *nativeWindow);
     WLContext *createResourceContext();
 
     struct coreui_output *getCurrentOutput();
 
-    struct wl_surface *createSurface() {
+    struct coreui_surface *createSurface() {
         return wl_context_createSurface(ctx);
     }
 
@@ -82,6 +82,9 @@ public:
     EGLContext getEGLContext() {
         return ctx->egl_context;
     }
+
+    struct xdg_wm_base *xdgWmBase();
+    std::string getKeyUTF8(uint32_t keycode);
 
 private:
     struct wl_context *ctx;

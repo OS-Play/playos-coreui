@@ -1,8 +1,8 @@
 #include "coreui_server.h"
 #include "shell/coreui_layer_shell.h"
 #include "coreui_input.h"
-#include "coreui_output.h"
 #include "coreui_view.h"
+#include "coreui_output_manager.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -46,14 +46,9 @@ int coreui_server_init(struct coreui_server *server)
     wlr_compositor_create(server->display, server->renderer);
     wlr_data_device_manager_create(server->display);
 
-    if (coreui_output_init(server)) {
-        return -1;
-    }
+    server->output_manager = coreui_output_manager_create(server);
 
-    server->scene = wlr_scene_create();
-    wlr_scene_attach_output_layout(server->scene, server->output_layout);
-
-    if (coreui_view_init(server)) {
+    if (coreui_views_init(server)) {
         return -1;
     }
 

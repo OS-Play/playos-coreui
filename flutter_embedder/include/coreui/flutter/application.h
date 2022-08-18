@@ -2,6 +2,7 @@
 #define __COREUI_FLUTTER_APPLICATION_H__
 
 #include "coreui/application.h"
+#include "../../../coreui_embedder.h"
 
 #include <memory>
 #include <string>
@@ -30,13 +31,12 @@ public:
         return m_window;
     }
 
-    int init();
-
-    int update() { return 0; };
-    int draw() { return 0; };
+protected:
+    virtual int onInit();
 
 private:
     std::shared_ptr<Window> m_window;
+    std::unique_ptr<Embedder> m_embedder;
 
     std::string m_assetsPath;
     std::string m_icudtl;

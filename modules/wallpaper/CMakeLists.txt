@@ -1,6 +1,8 @@
-set(APP_NAME Wallpaper)
+project(playos-wallpaper)
 
-add_subdirectory(libwallpaper)
+set(WP_SRC main.cpp
+    application.cpp
+    wallpaper.cpp)
 
-add_executable(${APP_NAME} main.cpp)
-target_link_libraries(${APP_NAME} wallpaper sti_image)
+add_executable(${PROJECT_NAME} ${WP_SRC})
+target_link_libraries(${PROJECT_NAME} EGL coreui_wl glad sti_image)

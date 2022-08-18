@@ -2,6 +2,7 @@
 
 #include "coreui/event_loop.h"
 #include "coreui/window.h"
+#include "coreui/log.h"
 #include "../wayland/wl_context.hxx"
 #include "coreui/wayland/layer_shell_surface.h"
 
@@ -11,17 +12,24 @@
 #include <limits.h>
 #include <mutex>
 #include <stdlib.h>
+#include <sys/epoll.h>
+#include <string.h>
 
 
 namespace playos {
 
+Application *Application::sApp = nullptr;
+
 Application::Application(int argc, char **argv):
         argc(argc), argv(argv)
 {
+    sApp = this;
 }
 
 Application::~Application()
 {
+    if (m_ctx && m_loop)
+        m_loop->removeWatchFd(m_ctx->getDisplayFd());
 }
 
 int Application::init()
@@ -32,9 +40,24 @@ int Application::init()
         if (m_ctx == nullptr) {
             ret = -1;
         }
-        m_loop.reset(EventLoop::create(m_ctx));
+        m_loop.reset(EventLoop::create());
         if (m_loop == nullptr) {
             m_ctx = nullptr;
+            ret = -1;
+        }
+
+        m_displayEvent.run = std::bind(&Application::handleDisplayEvent, this,
+                std::placeholders::_1, std::placeholders::_2);
+        m_displayFDPTask.run = std::bind(&Application::displayflushAndDispatchPending, this,
+                std::placeholders::_1, std::placeholders::_2);
+
+        if (m_loop->addWatchFd(m_ctx->getDisplayFd(), &m_displayEvent) != 0) {
+            ret = -1;
+        }
+
+        m_loop->post(&m_displayFDPTask, Task::Loop);
+
+        if (onInit() != 0) {
             ret = -1;
         }
     });
@@ -61,6 +84,31 @@ int Application::run()
     }
 
     return m_loop->exec();
+}
+
+
+void Application::handleDisplayEvent(Task *task, int events)
+{
+    int ret = 0;
+
+    if (events & EPOLLIN) {
+        ret = m_ctx->dispatch();
+        if (ret == -1) {
+            LOG_ERROR("Application", "Context dispatch error: %s\n", strerror(errno));
+            m_loop->exit();
+            return;
+        }
+    }
+
+    if (events & EPOLLOUT) {
+        m_ctx->flush();
+    }
+}
+
+void Application::displayflushAndDispatchPending(Task *task, int events)
+{
+    m_ctx->dispatchPending();
+    m_ctx->flush();
 }
 
 std::string Application::getRealpath(const std::string &path)
