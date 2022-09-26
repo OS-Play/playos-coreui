@@ -5,11 +5,17 @@ if(NOT PKG_CONFIG_FOUND)
 find_package(PkgConfig REQUIRED)
 endif()
 
-if(WS_FOUND)
+if(NOT WAYLAND_SCANNER OR NOT WAYLAND_PROTOCOLS)
 pkg_check_modules(WS wayland-server REQUIRED)
 
 pkg_get_variable(WAYLAND_PROTOCOLS wayland-protocols pkgdatadir)
+
+if (CMAKE_CROSSCOMPILING)
+find_program(WAYLAND_SCANNER wayland-scanner REGISTRY_VIEW HOST)
+else()
 pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+endif()
+
 endif()
 endmacro()
 

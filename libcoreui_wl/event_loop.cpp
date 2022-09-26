@@ -10,6 +10,10 @@
 
 #include <unistd.h>
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 
 namespace playos {
 
@@ -115,3 +119,7 @@ void EventLoop::exit()
 }
 
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif

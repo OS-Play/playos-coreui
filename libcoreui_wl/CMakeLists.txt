@@ -18,6 +18,7 @@ pkg_check_modules(WL_CURSOR wayland-cursor REQUIRED)
 pkg_check_modules(WEGL wayland-egl REQUIRED)
 pkg_check_modules(EGL egl REQUIRED)
 pkg_check_modules(XKB xkbcommon REQUIRED)
+pkg_check_modules(LIBFFI libffi REQUIRED)
 
 
 set(libcoreui_wl_SRC
@@ -50,6 +51,7 @@ target_link_libraries(${PROJECT_NAME}
     LINK_INTERFACE_LIBRARIES ${WEGL_LINK_LIBRARIES}
         ${EGL_LINK_LIBRARIES}
         ${WL_CURSOR_LINK_LIBRARIES}
-        ${XKB_LINK_LIBRARIES})
+        ${XKB_LINK_LIBRARIES}
+        ${LIBFFI_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
     INTERFACE ${INLCUDE_DIRS})

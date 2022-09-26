@@ -7,6 +7,10 @@
 #include <mutex>
 #include <sys/epoll.h>
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 #include <wayland-util.h>
 
 
@@ -65,5 +69,9 @@ private:
 };
 
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #endif

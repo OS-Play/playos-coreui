@@ -34,10 +34,17 @@ set(INCLUDE_DIRS
 
 include_directories(${INCLUDE_DIRS})
 
+if (CMAKE_CROSSCOMPILING)
+list(APPEND CMAKE_FIND_ROOT_PATH $ENV{FLUTTER_OUTPUT_DIR})
+endif()
+
 find_library(FLUTTER_LIB flutter_engine
-    PATHS $ENV{FLUTTER_OUTPUT_DIR}
+    NAMES libflutter_engine.so
+    PATHS ENV FLUTTER_OUTPUT_DIR
         ${FLUTTER_ENGINE_SOURCE_DIR}/out/host_debug_unopt
-        ${FLUTTER_ENGINE_SOURCE_DIR}/out/host_unopt)
+        ${FLUTTER_ENGINE_SOURCE_DIR}/out/host_unopt
+    REGISTRY_VIEW TARGET
+    REQUIRED)
 
 set(FLUTTER_ENGINE_SRC
     ${FLUTTER_SOURCE_DIR}/shell/platform/common/client_wrapper/core_implementations.cc
@@ -46,7 +53,7 @@ set(FLUTTER_ENGINE_SRC
 
 
 add_library(${PROJECT_NAME} STATIC ${FE_SRC} ${FLUTTER_ENGINE_SRC})
-target_link_libraries(${PROJECT_NAME} ${FLUTTER_LIB} coreui_wl glad)
+target_link_libraries(${PROJECT_NAME} ${FLUTTER_LIB} coreui_wl glad glm::glm)
 target_include_directories(${PROJECT_NAME}
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
     INTERFACE ${INCLUDE_DIRS})

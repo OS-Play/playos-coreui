@@ -37,4 +37,4 @@ include_directories(
     ${XKB_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${COREUI_SRC})
-target_link_libraries(${PROJECT_NAME} ${WLR_LIB} ${WS_LIBRARIES} ${XKB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${WLR_LIB} PkgConfig::WS PkgConfig::XKB)
