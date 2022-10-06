@@ -1,8 +1,9 @@
-#include "coreui_text_input.h"
-
 #include "../internal/json_method_codec.h"
 #include "coreui/window.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
+
+// Place here to undef Success
+#include "coreui_text_input.h"
 
 static constexpr char kSetEditingStateMethod[] = "TextInput.setEditingState";
 static constexpr char kClearClientMethod[] = "TextInput.clearClient";

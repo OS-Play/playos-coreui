@@ -48,10 +48,10 @@ include_directories(${INLCUDE_DIRS})
 
 add_library(${PROJECT_NAME} ${libcoreui_wl_SRC})
 target_link_libraries(${PROJECT_NAME}
-    LINK_INTERFACE_LIBRARIES ${WEGL_LINK_LIBRARIES}
-        ${EGL_LINK_LIBRARIES}
-        ${WL_CURSOR_LINK_LIBRARIES}
-        ${XKB_LINK_LIBRARIES}
-        ${LIBFFI_LINK_LIBRARIES})
+    LINK_INTERFACE_LIBRARIES ${WEGL_LIBRARIES}
+        ${EGL_LIBRARIES}
+        ${WL_CURSOR_LIBRARIES}
+        ${XKB_LIBRARIES}
+        ${LIBFFI_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
     INTERFACE ${INLCUDE_DIRS})

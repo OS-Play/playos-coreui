@@ -1,7 +1,7 @@
 #include "egl_wayland.h"
 #include "wl_context.h"
 
-#include <sys/errno.h>
+#include <errno.h>
 #include <wayland-egl.h>
 #include <EGL/eglext.h>
 

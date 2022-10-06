@@ -8,6 +8,10 @@
 #include "rapidjson/document.h"
 
 #include <flutter/binary_messenger.h>
+// Header from libX11 defined it, may be include in wlroots, undef here
+#ifdef Success
+#undef Success
+#endif
 #include <flutter/method_channel.h>
 
 

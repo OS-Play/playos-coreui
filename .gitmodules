@@ -1,9 +1,13 @@
-[submodule "3rdparty/wlroots"]
-	path = 3rdparty/wlroots
-	url = https://gitlab.freedesktop.org/wlroots/wlroots.git
 [submodule "3rdparty/wlr-protocols"]
 	path = 3rdparty/wlr-protocols
 	url = https://gitlab.freedesktop.org/wlroots/wlr-protocols.git
 [submodule "3rdparty/wayland-protocols"]
 	path = 3rdparty/wayland-protocols
 	url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git
+
+[submodule "3rdparty/rapidjson"]
+	path = 3rdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "3rdparty/iniparser"]
+	path = 3rdparty/iniparser
+	url = https://github.com/ndevilla/iniparser.git

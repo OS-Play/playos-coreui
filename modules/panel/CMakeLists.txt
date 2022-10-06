@@ -18,4 +18,6 @@ include_directories(
 
 add_flutter_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/gui ${PANEL_SRC})
 target_link_libraries(${PROJECT_NAME} ${WC_LIBRARIES}
-     ${WEGL_LINK_LIBRARIES} ${WLR_LIB} EGL GLESv2 ${WCC_LINK_LIBRARIES} flutter_embedder)
+     ${WEGL_LIBRARIES} ${WLR_LIB} EGL GLESv2 ${WCC_LIBRARIES} flutter_embedder)
+
+install(TARGETS ${PROJECT_NAME})

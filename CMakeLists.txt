@@ -2,32 +2,31 @@ cmake_minimum_required(VERSION 3.10.2)
 
 project(coreui)
 
+option(BUILD_WLROOTS "Build wlroots" ON)
+option(EP_UPDATE_DISCONNECTED "ExternalProject update disconnected" OFF)
+
+if (${EP_UPDATE_DISCONNECTED})
+  set_property(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    PROPERTY EP_UPDATE_DISCONNECTED TRUE)
+endif()
+
 set(WAYLAND_PROTOCOLS ${CMAKE_SOURCE_DIR}/3rdparty/wayland-protocols)
 add_definitions(-DWLR_USE_UNSTABLE -Werror)
 
 find_package(PkgConfig)
 
-if (CMAKE_CROSSCOMPILING)
-if (NOT CMAKE_FIND_ROOT_PATH)
-message(FATAL_ERROR "No rootfs found for cross compile, set CMAKE_FIND_ROOT_PATH please.")
-endif()
-
-set(MESON_CROSS_ARGS --cross-file ${CMAKE_SOURCE_DIR}/toolchain_files/meson_aarch64.txt)
-include_directories(${CMAKE_FIND_ROOT_PATH}/usr/include)
-
 pkg_check_modules(PIXMAN pixman-1 REQUIRED)
-
 include_directories(${PIXMAN_INCLUDE_DIRS})
-link_directories(BEFORE ${CMAKE_FIND_ROOT_PATH}/usr/lib)
 
-add_link_options(--sysroot=${CMAKE_FIND_ROOT_PATH})
-
-else()
-set(MESON_CROSS_ARGS)
+if (CMAKE_CROSSCOMPILING)
+link_directories(${CMAKE_SYSROOT}/usr/lib)
 endif(CMAKE_CROSSCOMPILING)
 
 include(cmake/utils.cmake)
 include(cmake/wlroots.cmake)
+include(cmake/iniparser.cmake)
+include(cmake/rapidjson.cmake)
 
 add_subdirectory(3rdparty/glad)
 add_subdirectory(3rdparty/sti)

@@ -1,6 +1,7 @@
 project(flutter_embedder)
 
 add_definitions(-DRAPIDJSON_HAS_STDSTRING)
+set(CMAKE_CXX_STANDARD 17)
 
 set(FE_SRC
     application.cpp
@@ -15,7 +16,7 @@ set(FE_SRC
     # internal/coreui_plugin_registrar.cpp)
 
 if (NOT ENV{FLUTTER_ENGINE_SOURCE_DIR})
-    set(FLUTTER_ENGINE_SOURCE_DIR /prodata/flutter/engine/src)
+    set(FLUTTER_ENGINE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 else()
     set(FLUTTER_ENGINE_SOURCE_DIR $ENV{FLUTTER_ENGINE_SOURCE_DIR})
 endif()
@@ -25,12 +26,12 @@ set(FLUTTER_SOURCE_DIR ${FLUTTER_ENGINE_SOURCE_DIR}/flutter)
 endif()
 
 set(INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${FLUTTER_ENGINE_SOURCE_DIR}
     ${FLUTTER_SOURCE_DIR}/shell/platform/common/client_wrapper/include
     ${FLUTTER_SOURCE_DIR}/shell/platform/common/public
-    ${FLUTTER_SOURCE_DIR}/shell/platform/embedder
-    ${FLUTTER_ENGINE_SOURCE_DIR}/third_party/rapidjson/include/)
+    ${FLUTTER_SOURCE_DIR}/shell/platform/embedder)
 
 include_directories(${INCLUDE_DIRS})
 
@@ -43,8 +44,12 @@ find_library(FLUTTER_LIB flutter_engine
     PATHS ENV FLUTTER_OUTPUT_DIR
         ${FLUTTER_ENGINE_SOURCE_DIR}/out/host_debug_unopt
         ${FLUTTER_ENGINE_SOURCE_DIR}/out/host_unopt
-    REGISTRY_VIEW TARGET
-    REQUIRED)
+    REGISTRY_VIEW TARGET)
+
+if (NOT FLUTTER_LIB)
+message(FATAL_ERROR "set the environment FLUTTER_OUTPUT_DIR to file libflutter_engine.so\n
+        i.e export FLUTTER_OUTPUT_DIR=/engine/src/out/host_debug_unopt")
+endif()
 
 set(FLUTTER_ENGINE_SRC
     ${FLUTTER_SOURCE_DIR}/shell/platform/common/client_wrapper/core_implementations.cc

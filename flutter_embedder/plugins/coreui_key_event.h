@@ -5,7 +5,10 @@
 
 #include <embedder.h>
 #include <flutter/basic_message_channel.h>
-
+// Header from libX11 defined it, may be include in wlroots, undef here
+#ifdef Bool
+#undef Bool
+#endif
 #include "rapidjson/document.h"
 
 #include "coreui/window.h"

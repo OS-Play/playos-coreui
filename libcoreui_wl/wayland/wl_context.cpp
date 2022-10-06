@@ -4,7 +4,7 @@
 #include "wl_context.h"
 
 #include <errno.h>
-#include <sys/errno.h>
+#include <errno.h>
 
 
 namespace playos {
