@@ -44,11 +44,24 @@ find_program(FLUTTER flutter)
 
 add_custom_target("${appname}_fl_build"
     WORKING_DIRECTORY ${flutterPath}
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/assets
-    COMMAND ${FLUTTER} build bundle --asset-dir ${CMAKE_CURRENT_BINARY_DIR}/assets)
+    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets
+    COMMAND ${FLUTTER} build bundle --asset-dir ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets)
 
 set("${appname}_SRC" ${ARGV})
 list(REMOVE_ITEM "${appname}_SRC" ${appname} ${flutterPath})
 add_executable(${appname} ${${appname}_SRC})
 add_dependencies(${appname} "${appname}_fl_build")
+
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/meta.xml FILE_CONTENTS)
+string(REPLACE "@APP_VERSION@" "${PROJECT_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/meta.xml "${FILE_CONTENTS}")
+
+if (${CMAKE_INSTALL_PREFIX} MATCHES "/usr/local")
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/)
+endif()
+
+install(CODE "execute_process(COMMAND rm ${CMAKE_INSTALL_PREFIX}/${appname}.app -rf)")
+install(TARGETS ${appname} DESTINATION ${appname}.app/bin)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources DESTINATION ${appname}.app)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/meta.xml DESTINATION ${appname}.app)
 endmacro()

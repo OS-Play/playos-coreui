@@ -9,7 +9,7 @@ namespace playos {
 
 class PanelApplication: public flutter::Application {
 public:
-    PanelApplication(int argc, char *argv[], const char *appPath, const char *icudtl);
+    PanelApplication(int argc, char *argv[]);
     ~PanelApplication();
 
     std::shared_ptr<Window> createDefaultWindow();

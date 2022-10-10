@@ -10,8 +10,8 @@
 
 namespace playos {
 
-PanelApplication::PanelApplication(int argc, char *argv[], const char *assetsPath, const char *icudtl):
-        flutter::Application(argc, argv, assetsPath, icudtl)
+PanelApplication::PanelApplication(int argc, char *argv[]):
+        flutter::Application(argc, argv)
 {
 }
 

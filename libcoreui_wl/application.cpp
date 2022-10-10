@@ -57,6 +57,8 @@ int Application::init()
 
         m_loop->post(&m_displayFDPTask, Task::Loop);
 
+        parseArgs();
+
         if (onInit() != 0) {
             ret = -1;
         }

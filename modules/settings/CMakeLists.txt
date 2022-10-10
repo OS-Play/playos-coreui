@@ -1,4 +1,4 @@
-project(playos-settings)
+project(playos-settings VERSION 0.0.1)
 
 set(SETTINGS_SRC
     main.cpp)

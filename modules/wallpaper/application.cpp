@@ -96,7 +96,7 @@ int WallpaperApplication::onInit()
     m_wallpaper->setImage(data, x, y);
     stbi_image_free(data);
     m_wallpaper->setScaleMode(m_scaleMode);
-    m_wallpaper->setBgColor(0.0f, 1.0f, 0.0f, 1.0f);
+    m_wallpaper->setBgColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     m_window->swapBuffer();
     return 0;

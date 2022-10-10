@@ -1,4 +1,4 @@
-project(playos-panel)
+project(playos-panel VERSION 0.0.1)
 
 find_package(PkgConfig)
 pkg_check_modules(WC wayland-client REQUIRED)

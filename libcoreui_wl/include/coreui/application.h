@@ -44,6 +44,7 @@ public:
 
 protected:
     virtual int onInit() { return 0; }
+    virtual void parseArgs() { };
 
 protected:
     int argc;

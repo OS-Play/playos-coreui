@@ -75,7 +75,7 @@ int EventLoop::exec()
             task->run(task, 0);
         }
 
-        count = epoll_wait(m_epoll, evs, sizeof(evs)/sizeof(struct epoll_event), -1);
+        count = epoll_wait(m_epoll, evs, sizeof(evs)/sizeof(struct epoll_event), 10);
         for (int i = 0; i < count; i++) {
             task = (Task *)evs[i].data.ptr;
             task->run(task, evs[i].events);

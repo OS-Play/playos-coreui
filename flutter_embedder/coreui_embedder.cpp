@@ -257,8 +257,8 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
     window->createResourceContext();
     window->setMouseListener(this);
     window->setKeyboardListener(this);
-    // m_state->compositor = std::make_unique<playos::flutter::Compositor>(window);
-    // auto compositor = m_state->compositor->getFlutterCompositor();
+    m_state->compositor = std::make_unique<playos::flutter::Compositor>(window);
+    auto compositor = m_state->compositor->getFlutterCompositor();
 
     FlutterRendererConfig config = getRendererConfig();
 
@@ -266,7 +266,7 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
     auto platform_task_runner = getPlatformTaskRunners();
     task_runners.struct_size = sizeof(FlutterCustomTaskRunners);
     task_runners.platform_task_runner = &platform_task_runner;
-    // task_runners.render_task_runner = &platform_task_runner;
+    task_runners.render_task_runner = &platform_task_runner;
 
     FlutterProjectArgs args = {
         .struct_size = sizeof(FlutterProjectArgs),
@@ -288,7 +288,7 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
         //     }));
         // },
         .custom_task_runners = &task_runners,
-        // .compositor = &compositor,
+        .compositor = &compositor,
         .log_message_callback = [](const char* tag, const char* msg, void *data) {
             printf("[%s]: %s\n", tag, msg);
         },

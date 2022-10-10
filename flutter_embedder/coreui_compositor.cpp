@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <memory>
 #include <string.h>
+#include <thread>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -66,7 +67,7 @@ static void checkCompileErrors(unsigned int shader, const char *type)
 {
     int success;
     char infoLog[1024];
-    if (strcmp(type, "PROGRAM") == 0) {
+    if (strcmp(type, "SHADER") == 0) {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
@@ -241,7 +242,7 @@ bool Compositor::presentLayers(const FlutterLayer** layers, size_t layers_count)
         }
 
         glUniformMatrix4fv(s_proj_id, 1, GL_FALSE,
-                glm::value_ptr(gles_get_projection(1024, 64, layer->offset.x, layer->offset.y, layer->size.width, layer->size.height)));
+                glm::value_ptr(gles_get_projection(m_window->width(), m_window->height(), layer->offset.x, layer->offset.y, layer->size.width, layer->size.height)));
         glBindVertexArrayOES(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

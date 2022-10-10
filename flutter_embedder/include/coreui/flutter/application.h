@@ -12,7 +12,7 @@ namespace flutter {
 
 class Application: public playos::Application {
 public:
-    Application(int argc, char **argv, const char *appPath, const char *icudtl);
+    Application(int argc, char **argv);
     virtual ~Application();
 
     /**
@@ -33,6 +33,12 @@ public:
 
 protected:
     virtual int onInit();
+    virtual void parseArgs();
+
+private:
+    bool initAssetsPath();
+    bool initIcudtlPath();
+    std::string getFistPathExists(const char **pathes, size_t size, bool isFile);
 
 private:
     std::shared_ptr<Window> m_window;

@@ -103,12 +103,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(0, 0, 255, 0.3),
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
-        backgroundColor: const Color. fromRGBO(24, 233, 111, 0.6),
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
