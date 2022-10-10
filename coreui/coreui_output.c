@@ -56,6 +56,7 @@ struct coreui_output *coreui_output_create(struct coreui_server *server,
     output->server = server;
     output->wlr_output = wlr_output;
     output->workspace_manager = coreui_workspace_manager_create(output, 1);
+    wl_signal_init(&output->panel_height_changed);
 
     output->frame.notify = output_frame;
     wl_signal_add(&wlr_output->events.frame, &output->frame);
@@ -103,4 +104,9 @@ int coreui_output_get_panel_height(struct coreui_output *output)
 {
     assert(output);
     return coreui_workspace_manager_get_panel_height(output->workspace_manager);
+}
+
+void coreui_output_add_panel_listener(struct coreui_output *output, struct wl_listener *listener)
+{
+    wl_signal_add(&output->panel_height_changed, listener);
 }

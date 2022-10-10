@@ -45,7 +45,7 @@ static const char *s_fshader =
 "uniform sampler2D tex;\n"
 "\n"
 "void main() {\n"
-"   gl_FragColor = texture2D(tex, v_texcoord) * 1.0f;\n"
+"   gl_FragColor = texture2D(tex, v_texcoord);\n"
 "}\n";
 
 

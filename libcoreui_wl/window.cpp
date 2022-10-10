@@ -127,9 +127,14 @@ void Window::onEvent(EventPtr event)
         break;
     case WINDOW_RESIZE: {
             auto e = event->cast<ResizeEvent>();
+            if (m_width == e->width && m_height == e->height) {
+                return;
+            }
+
             m_width = e->width;
             m_height = e->height;
 
+            wl_egl_window_resize(egl_window, m_width, m_height, 0, 0);
             invoke_or_return->onWindowResize(e->width, e->height);
             swapBuffer();
         } break;
@@ -177,7 +182,7 @@ void Window::setDrawEventListener(DrawEventListener *listener)
 
 void Window::draw(uint32_t time)
 {
-    printf("[Window] new frame\n");
+    // printf("[Window] new frame\n");
     if (m_drawEventListener) {
         makeCurrent();
         m_drawEventListener->onDraw(this, time);

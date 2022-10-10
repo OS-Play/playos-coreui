@@ -48,7 +48,7 @@ void surface_frame_callback(void *data, struct wl_callback *cb, uint32_t time) {
     playos::CoreuiSurface *surface = reinterpret_cast<playos::CoreuiSurface *>(data);
     surface->resetNewFrameLisener();
 
-    auto event = playos::Event::create<playos::FrameEvent>(playos::WINDOW_FRAME, time);
+    auto event = playos::Event::create<playos::FrameEvent>(time);
     surface->dispatchEvent(event);
 }
 

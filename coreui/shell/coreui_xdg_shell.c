@@ -24,6 +24,7 @@ struct coreui_xdg_view {
     struct wl_listener request_resize;
     struct wl_listener request_maximize;
     struct wl_listener request_fullscreen;
+    struct wl_listener panel_height_changed;
 };
 
 static struct coreui_xdg_view* coreui_xdg_view_from_view(struct coreui_view *view)
@@ -41,7 +42,18 @@ static struct wlr_scene_tree *xdg_create_subtree(struct coreui_view *view,
     view->scene_tree->node.data = _view;
 }
 
-static void xdg_toplevel_map(struct wl_listener *listener, void *data) {
+static void xdg_toplevel_on_panel_height_changed(struct wl_listener *listener, void *data)
+{
+    struct coreui_output *output = data;
+    struct coreui_xdg_view *view = wl_container_of(listener, view, panel_height_changed);
+
+    wlr_xdg_toplevel_set_size(view->xdg_toplevel,
+            output->wlr_output->width,
+            output->wlr_output->height - coreui_output_get_panel_height(output));
+}
+
+static void xdg_toplevel_map(struct wl_listener *listener, void *data)
+{
     struct coreui_xdg_view *view = wl_container_of(listener, view, map);
     struct coreui_output *output = coreui_output_manager_get_active_output(
             view->view.server->output_manager);
@@ -50,18 +62,30 @@ static void xdg_toplevel_map(struct wl_listener *listener, void *data) {
             Layer_App, xdg_create_subtree);
 
     view->xdg_toplevel->base->data = view->view.scene_tree;
-    wlr_log(WLR_DEBUG, ">>>>>>>>>: %d\n", coreui_output_get_panel_height(output));
+    wlr_log(WLR_DEBUG, "Panel height: %d\n", coreui_output_get_panel_height(output));
+
+    if (view->xdg_toplevel->scheduled.width == 0 &&
+            view->xdg_toplevel->scheduled.height == 0) {
+        // set init size
+        wlr_xdg_toplevel_set_size(view->xdg_toplevel,
+                output->wlr_output->width,
+                output->wlr_output->height - coreui_output_get_panel_height(output));
+    }
+    view->panel_height_changed.notify = xdg_toplevel_on_panel_height_changed;
+    coreui_output_add_panel_listener(output, &view->panel_height_changed);
 
     coreui_view_focus(&view->view);
 }
 
-static void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
+static void xdg_toplevel_unmap(struct wl_listener *listener, void *data)
+{
     struct coreui_xdg_view *view = wl_container_of(listener, view, unmap);
 
-
+    wl_list_remove(&view->panel_height_changed.link);
 }
 
-static void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
+static void xdg_toplevel_destroy(struct wl_listener *listener, void *data)
+{
     struct coreui_xdg_view *view = wl_container_of(listener, view, destroy);
 
     wl_list_remove(&view->map.link);
@@ -76,7 +100,8 @@ static void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void begin_interactive(struct coreui_xdg_view *view,
-        enum coreui_cursor_mode mode, uint32_t edges) {
+        enum coreui_cursor_mode mode, uint32_t edges)
+{
     /* This function sets up an interactive move or resize operation, where the
      * compositor stops propegating pointer events to clients and instead
      * consumes them itself, to move or resize windows. */
@@ -113,7 +138,8 @@ static void begin_interactive(struct coreui_xdg_view *view,
 }
 
 static void xdg_toplevel_request_move(
-        struct wl_listener *listener, void *data) {
+        struct wl_listener *listener, void *data)
+{
     /* This event is raised when a client would like to begin an interactive
      * move, typically because the user clicked on their client-side
      * decorations. Note that a more sophisticated compositor should check the
@@ -124,7 +150,8 @@ static void xdg_toplevel_request_move(
 }
 
 static void xdg_toplevel_request_resize(
-        struct wl_listener *listener, void *data) {
+        struct wl_listener *listener, void *data)
+{
     /* This event is raised when a client would like to begin an interactive
      * resize, typically because the user clicked on their client-side
      * decorations. Note that a more sophisticated compositor should check the
@@ -136,7 +163,8 @@ static void xdg_toplevel_request_resize(
 }
 
 static void xdg_toplevel_request_maximize(
-        struct wl_listener *listener, void *data) {
+        struct wl_listener *listener, void *data)
+{
     /* This event is raised when a client would like to maximize itself,
      * typically because the user clicked on the maximize button on
      * client-side decorations. tinywl doesn't support maximization, but
@@ -148,7 +176,8 @@ static void xdg_toplevel_request_maximize(
 }
 
 static void xdg_toplevel_request_fullscreen(
-        struct wl_listener *listener, void *data) {
+        struct wl_listener *listener, void *data)
+{
     /* Just as with request_maximize, we must send a configure here. */
     struct coreui_xdg_view *view =
             wl_container_of(listener, view, request_fullscreen);

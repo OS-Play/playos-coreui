@@ -99,6 +99,11 @@ static void layer_surface_map(struct wl_listener *listener, void *data)
 static void layer_surface_unmap(struct wl_listener *listener, void *data)
 {
     struct coreui_layer_shell_view *view = wl_container_of(listener, view, unmap);
+
+    if (view->layer_surface->namespace && 
+            strcmp(view->layer_surface->namespace, PANEL_NAMESPACE) == 0) {
+        coreui_output_set_panel_height(view->view.output, 0);
+    }
 }
 
 static void layer_surface_destroy(struct wl_listener *listener, void *data)

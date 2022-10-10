@@ -257,6 +257,7 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
     window->createResourceContext();
     window->setMouseListener(this);
     window->setKeyboardListener(this);
+    window->setWindowEventListener(this);
     m_state->compositor = std::make_unique<playos::flutter::Compositor>(window);
     auto compositor = m_state->compositor->getFlutterCompositor();
 

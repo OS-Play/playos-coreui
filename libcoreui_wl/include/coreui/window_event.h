@@ -41,16 +41,16 @@ public:
 
 class ResizeEvent: public Event {
 public:
-    ResizeEvent(EventType type, int width, int height):
-        Event(type), width(width), height(height) { }
+    ResizeEvent(int width, int height):
+        Event(WINDOW_RESIZE), width(width), height(height) { }
 
     int width, height;
 };
 
 class FrameEvent: public Event {
 public:
-    FrameEvent(EventType type, uint32_t time):
-        Event(type), time(time) { }
+    FrameEvent(uint32_t time):
+        Event(WINDOW_FRAME), time(time) { }
 
     uint32_t time;
 };

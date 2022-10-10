@@ -157,6 +157,7 @@ void coreui_workspace_manager_set_panel_height(
     assert(m);
     m->panel_height = height;
     wlr_scene_node_set_position(&m->app->node, 0, height);
+    wl_signal_emit_mutable(&m->output->panel_height_changed, m->output);
 }
 
 int coreui_workspace_manager_get_panel_height(

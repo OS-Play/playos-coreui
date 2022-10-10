@@ -18,7 +18,13 @@ static const struct xdg_surface_listener xdg_surface_listener = {
 static void xdg_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel,
         int32_t width, int32_t height, struct wl_array *states)
 {
+    if (width == 0 || height == 0) {
+        return;
+    }
 
+    auto surface = (playos::XdgShellSurface *)(data);
+
+    surface->dispatchEvent(playos::Event::create<playos::ResizeEvent>(width, height));
 }
 static void xdg_toplevel_close(void *data, struct xdg_toplevel *xdg_toplevel)
 {
@@ -79,7 +85,7 @@ void XdgShellSurface::onCreate()
 
     if (role == TOP_LEVEL) {
         m_xdg_toplevel = xdg_surface_get_toplevel(m_xdg_surface);
-        xdg_toplevel_add_listener(m_xdg_toplevel, &xdg_toplevel_listener, NULL);
+        xdg_toplevel_add_listener(m_xdg_toplevel, &xdg_toplevel_listener, this);
     } else {
         m_positioner = xdg_wm_base_create_positioner(m_xdg_wm_base);
         assert(m_xdg_surface && m_positioner);
