@@ -11,9 +11,6 @@ int main(int argc, char *argv[]) {
     wlr_log_init(WLR_DEBUG, NULL);
     char *startup_cmd = NULL;
 
-    // TODO: for vmwgfx drm driver
-    setenv("WLR_NO_HARDWARE_CURSORS", "1", 1);
-
     int c;
     while ((c = getopt(argc, argv, "s:h")) != -1) {
         switch (c) {
