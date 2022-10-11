@@ -1,4 +1,4 @@
-project(flutter_embedder)
+project(coreui_flutter)
 
 add_definitions(-DRAPIDJSON_HAS_STDSTRING)
 set(CMAKE_CXX_STANDARD 17)
@@ -62,3 +62,7 @@ target_link_libraries(${PROJECT_NAME} ${FLUTTER_LIB} coreui_wl glad glm::glm)
 target_include_directories(${PROJECT_NAME}
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
     INTERFACE ${INCLUDE_DIRS})
+install(TARGETS ${PROJECT_NAME})
+install(DIRECTORY include/ DESTINATION "include"
+    FILES_MATCHING
+    PATTERN "*.h")

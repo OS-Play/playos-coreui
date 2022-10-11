@@ -55,3 +55,8 @@ target_link_libraries(${PROJECT_NAME}
         ${LIBFFI_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
     INTERFACE ${INLCUDE_DIRS})
+target_sources(${PROJECT_NAME} PUBLIC ${HEADERS})
+install(TARGETS ${PROJECT_NAME})
+install(DIRECTORY include/ DESTINATION "include"
+    FILES_MATCHING
+    PATTERN "*.h")

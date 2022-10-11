@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<application id="xyz.playos.wallpaper">
+    <info>
+        <name>PlayOS Wallpaper</name>
+        <version>@APP_VERSION@</version>
+    </info>
+</application>

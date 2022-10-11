@@ -23,7 +23,7 @@ if (CMAKE_CROSSCOMPILING)
 link_directories(${CMAKE_SYSROOT}/usr/lib)
 endif(CMAKE_CROSSCOMPILING)
 
-include(cmake/utils.cmake)
+include(cmake/coreui-utils.cmake)
 include(cmake/wlroots.cmake)
 include(cmake/iniparser.cmake)
 include(cmake/rapidjson.cmake)
