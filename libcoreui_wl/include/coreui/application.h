@@ -37,6 +37,11 @@ public:
 
     void handleDisplayEvent(Task *task, int events);
     void displayflushAndDispatchPending(Task *task, int events);
+
+    const std::string &execPath();
+    std::string getResourcesPath();
+    std::string toResourcesPath(const char *path);
+
 public:
     static std::string getRealpath(const std::string &path);
     static std::string getRealpath(const char *path);

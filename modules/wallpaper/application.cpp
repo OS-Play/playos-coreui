@@ -11,7 +11,7 @@
 
 #include "coreui/wayland/layer_shell_surface.h"
 
-#define DEFAULT_WP "/home/rany/project/build/usr/share/wayfire/wallpaper.jpg"
+#define DEFAULT_WP "resources/images/wallpaper.jpg"
 
 namespace playos {
 
@@ -89,7 +89,7 @@ int WallpaperApplication::onInit()
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data;
     if (m_imagePath.empty()) {
-        data = stbi_load(DEFAULT_WP, &x, &y, &n, 0);
+        data = stbi_load(toResourcesPath(DEFAULT_WP).c_str(), &x, &y, &n, 0);
     } else {
         data = stbi_load(m_imagePath.c_str(), &x, &y, &n, 0);
     }

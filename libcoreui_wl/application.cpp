@@ -113,6 +113,26 @@ void Application::displayflushAndDispatchPending(Task *task, int events)
     m_ctx->flush();
 }
 
+const std::string &Application::execPath()
+{
+    static std::string _execPath = "";
+    if (argv != nullptr && _execPath.empty()) {
+        _execPath = execPath(argv[0]);
+    }
+
+    return _execPath;
+}
+
+std::string Application::getResourcesPath()
+{
+    return execPath().substr(0, execPath().rfind('/'));
+}
+
+std::string Application::toResourcesPath(const char *path)
+{
+    return getResourcesPath() + "/" + path;
+}
+
 std::string Application::getRealpath(const std::string &path)
 {
     return getRealpath(path.c_str());

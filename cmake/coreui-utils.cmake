@@ -52,7 +52,7 @@ set(${appname}_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/Applications/${appname}.app)
 install(CODE "execute_process(COMMAND rm ${${appname}_INSTALL_PATH}/ -rf)")
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${appname}
         DESTINATION ${${appname}_INSTALL_PATH}/bin)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources OPTIONAL
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources OPTIONAL
         DESTINATION ${${appname}_INSTALL_PATH}/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/meta.xml DESTINATION ${${appname}_INSTALL_PATH}/)
 endmacro()
@@ -69,5 +69,6 @@ set("${appname}_FL_SRC" ${ARGV})
 list(REMOVE_ITEM "${appname}_FL_SRC" ${appname} ${flutterPath})
 add_wl_executable(${appname} ${${appname}_FL_SRC})
 add_dependencies(${appname} "${appname}_fl_build")
-
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources OPTIONAL
+        DESTINATION ${${appname}_INSTALL_PATH}/)
 endmacro()
