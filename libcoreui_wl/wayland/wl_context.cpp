@@ -93,10 +93,10 @@ struct xdg_wm_base *WLContext::xdgWmBase() {
 
 std::string WLContext::getKeyUTF8(uint32_t keycode)
 {
-    int size = xkb_state_key_get_utf8(ctx->xkb_state, key_t(keycode), NULL, 0);
+    int size = xkb_state_key_get_utf8(ctx->xkb_state, xkb_keycode_t(keycode), NULL, 0);
     if (size > 0) {
         char buff[size + 1];
-        xkb_state_key_get_utf8(ctx->xkb_state, key_t(keycode), buff, size+1);
+        xkb_state_key_get_utf8(ctx->xkb_state, xkb_keycode_t(keycode), buff, size+1);
         buff[size] = '\0';
 
         return std::string(buff);
