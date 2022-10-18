@@ -29,6 +29,6 @@ add_subdirectory(3rdparty/sti)
 add_subdirectory(3rdparty/glm)
 
 add_subdirectory(libcoreui_wl)
-add_subdirectory(flutter_embedder)
+add_subdirectory(libcoreui_flutter)
 add_subdirectory(modules)
 add_subdirectory(coreui)
