@@ -19,10 +19,6 @@ find_package(PkgConfig)
 pkg_check_modules(PIXMAN pixman-1 REQUIRED)
 include_directories(${PIXMAN_INCLUDE_DIRS})
 
-if (CMAKE_CROSSCOMPILING)
-link_directories(${CMAKE_SYSROOT}/usr/lib)
-endif(CMAKE_CROSSCOMPILING)
-
 include(cmake/coreui-utils.cmake)
 include(cmake/wlroots.cmake)
 include(cmake/iniparser.cmake)
