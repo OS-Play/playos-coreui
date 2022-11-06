@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:developer';
+
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,9 +45,27 @@ class PanelPage extends StatefulWidget {
 class _PanelPageState extends State<PanelPage> {
   String time = "20:20:55";
   String battery = "100%";
+  late final Timer timer;
+
+  _PanelPageState() {
+    timer = Timer.periodic(const Duration(milliseconds: 1000), newTime);
+  }
+
+  void newTime(Timer timer) {
+    updateTime();
+  }
+
+  void updateTime() {
+    var now = new DateTime.now();
+    var f = DateFormat("Hms");
+    setState(() {
+      time = f.format(now);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    updateTime();
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 0.9),
       body: Center(
