@@ -11,6 +11,10 @@ if (${EP_UPDATE_DISCONNECTED})
     PROPERTY EP_UPDATE_DISCONNECTED TRUE)
 endif()
 
+if (NOT CMAKE_BUILD_TYPE MATCHES "debug|DEBUG|Debug")
+add_definitions(-DRELEASE)
+endif()
+
 set(WAYLAND_PROTOCOLS ${CMAKE_SOURCE_DIR}/3rdparty/wayland-protocols)
 add_definitions(-DWLR_USE_UNSTABLE -Werror)
 

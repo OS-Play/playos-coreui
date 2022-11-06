@@ -60,10 +60,53 @@ endmacro()
 macro(add_flutter_executable appname flutterPath ...)
 find_program(FLUTTER flutter)
 
+# Generate all dart relative files
+file(GLOB_RECURSE ${appname}_dart_src
+        LIST_DIRECTORIES TRUE
+        FOLLOW_SYMLINKS
+        ${flutterPath}/lib/*.dart)
+
+if (NOT CMAKE_BUILD_TYPE MATCHES "debug|Debug|DEBUG")
+set(${appname}_BUILD_TYPE --release)
+set(PLAYOS_FLUTTER_SDK_PATH $ENV{PLAYOS_FLUTTER_SDK_PATH})
+
+if (NOT PLAYOS_FLUTTER_SDK_PATH)
+message(FATAL_ERROR "No PLAYOS_FLUTTER_SDK_PATH environment variable found.")
+endif()
+
+find_program(DART dart REQUIRED)
+find_program(GEN_SNAPSHOT gen_snapshot REQUIRED)
+
+add_custom_command(OUTPUT "${appname}_kernel_snapshot.dill"
+        WORKING_DIRECTORY ${flutterPath}
+        COMMAND ${DART}
+            ${PLAYOS_FLUTTER_SDK_PATH}/frontend_server.dart.snapshot
+            --sdk-root ${PLAYOS_FLUTTER_SDK_PATH}/flutter_patched_sdk/
+            --target=flutter
+            --aot
+            --tfa
+            -Ddart.vm.product=true
+            --packages .dart_tool/package_config.json
+            --output-dill ${CMAKE_CURRENT_BINARY_DIR}/${appname}_kernel_snapshot.dill
+            --verbose
+            --depfile ${CMAKE_CURRENT_BINARY_DIR}/${appname}_kernel_snapshot.d
+            lib/main.dart
+        DEPENDS ${${appname}_dart_src})
+add_custom_target("${appname}_app.so"
+        WORKING_DIRECTORY ${flutterPath}
+        COMMAND ${GEN_SNAPSHOT}
+            --snapshot_kind=app-aot-elf
+            --elf=${CMAKE_CURRENT_BINARY_DIR}/${appname}_app.so
+            ${CMAKE_CURRENT_BINARY_DIR}/${appname}_kernel_snapshot.dill
+        DEPENDS ${appname}_kernel_snapshot.dill)
+else()
+set(${appname}_BUILD_TYPE "")
+endif()
+
 add_custom_target("${appname}_fl_build"
-    WORKING_DIRECTORY ${flutterPath}
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets
-    COMMAND ${FLUTTER} build bundle --asset-dir ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets)
+        WORKING_DIRECTORY ${flutterPath}
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets
+        COMMAND ${FLUTTER} build bundle ${${appname}_BUILD_TYPE} --asset-dir ${CMAKE_CURRENT_BINARY_DIR}/resources/flutter_assets)
 
 set("${appname}_FL_SRC" ${ARGV})
 list(REMOVE_ITEM "${appname}_FL_SRC" ${appname} ${flutterPath})
@@ -71,4 +114,10 @@ add_wl_executable(${appname} ${${appname}_FL_SRC})
 add_dependencies(${appname} "${appname}_fl_build")
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources OPTIONAL
         DESTINATION ${${appname}_INSTALL_PATH}/)
+if (NOT CMAKE_BUILD_TYPE MATCHES "debug|Debug|DEBUG")
+    add_dependencies(${appname} "${appname}_app.so")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${appname}_app.so OPTIONAL
+            DESTINATION ${${appname}_INSTALL_PATH}/bin
+            RENAME app.so)
+endif()
 endmacro()

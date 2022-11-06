@@ -44,9 +44,12 @@ public:
 
     EventLoop *eventLoop();
 
-    bool runFlutter(std::shared_ptr<Window> window, const std::string& project_path,
+    bool runFlutter(std::shared_ptr<Window> window,
+                    const std::string& assets_path,
                     const std::string& icudtl_path,
+                    const std::string& aot_path,
                     int argc, const char **argv);
+    void stopFlutter();
 
     void setFlutterWindowSize(int width, int height);
     void platformMessageCallback(const FlutterPlatformMessage* msg);
@@ -83,6 +86,7 @@ private:
     std::unique_ptr<CoreuiFlutterState> m_state;
     std::mutex m_vsyncMux;
     std::queue<intptr_t> m_vsyncQueue;
+    FlutterEngineAOTData m_AOTData;
 
     friend std::unique_ptr<Embedder> std::make_unique<Embedder>();
 };

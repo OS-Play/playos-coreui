@@ -20,6 +20,9 @@ static const char *icudtlPathes[] = {
     "/usr/share/flutter/resources/icu/icudtl.dat",
 };
 
+const char *aotFile = "app.so";
+
+
 Application::Application(int argc, char **argv):
         playos::Application(argc, argv), m_embedder(Embedder::create()),
             m_assetsPath(), m_icudtl()
@@ -42,7 +45,10 @@ int Application::onInit()
     }
 
     m_window = createDefaultWindow();
-    if (!m_embedder->runFlutter(m_window, m_assetsPath.c_str(), m_icudtl.c_str(), argc, (const char **)argv)) {
+
+    int ret = m_embedder->runFlutter(m_window, m_assetsPath, m_icudtl,
+            execPath() + '/' +aotFile, argc, (const char **)&argv[0]);
+    if (!ret) {
         return -1;
     }
 

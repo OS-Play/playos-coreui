@@ -40,7 +40,7 @@ namespace playos {
 namespace flutter {
 
 Embedder::Embedder():
-    isDown(false), x(0), y(0),
+    isDown(false), x(0), y(0), m_AOTData(nullptr),
     m_state(std::make_unique<CoreuiFlutterState>())
 {
     m_state->embedder = this;
@@ -251,6 +251,7 @@ void Embedder::onKeyboardKey(uint32_t keycode, uint32_t keyval, int state, int m
 bool Embedder::runFlutter(std::shared_ptr<Window> window,
                 const std::string& assets_path,
                 const std::string& icudtl_path,
+                const std::string& aot_path,
                 int argc, const char **argv)
 {
     m_state->window = window;
@@ -267,7 +268,16 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
     auto platform_task_runner = getPlatformTaskRunners();
     task_runners.struct_size = sizeof(FlutterCustomTaskRunners);
     task_runners.platform_task_runner = &platform_task_runner;
-    task_runners.render_task_runner = &platform_task_runner;
+    // task_runners.render_task_runner = &platform_task_runner;
+
+#ifdef RELEASE
+    FlutterEngineAOTDataSource aotSource = {
+        .type = kFlutterEngineAOTDataSourceTypeElfPath,
+        .elf_path = aot_path.c_str(),
+    };
+
+    FlutterEngineCreateAOTData(&aotSource, &m_AOTData);
+#endif
 
     FlutterProjectArgs args = {
         .struct_size = sizeof(FlutterProjectArgs),
@@ -290,9 +300,10 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
         // },
         .custom_task_runners = &task_runners,
         .compositor = &compositor,
-        .log_message_callback = [](const char* tag, const char* msg, void *data) {
-            printf("[%s]: %s\n", tag, msg);
-        },
+        .aot_data = m_AOTData,
+        // .log_message_callback = [](const char* tag, const char* msg, void *data) {
+        //     printf("[%s]: %s\n", tag, msg);
+        // },
     };
 
     FlutterEngineResult result =
@@ -310,6 +321,14 @@ bool Embedder::runFlutter(std::shared_ptr<Window> window,
     setFlutterWindowSize(window->width(), window->height());
 
     return true;
+}
+
+void Embedder::stopFlutter()
+{
+    FlutterEngineShutdown(m_state->engine);
+#ifdef RELEASE
+    FlutterEngineCollectAOTData(m_AOTData);
+#endif
 }
 
 void Embedder::setFlutterWindowSize(int width, int height)
