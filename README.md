@@ -1,6 +1,8 @@
 # PlayOS CoreUI
 A wayland compositor base on wlroots.
 
+![view](./screenshots/view.png)
+
 # Dependencies
 1. wlroots
 2. flutter embedder
