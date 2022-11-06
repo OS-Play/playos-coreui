@@ -115,6 +115,7 @@ add_dependencies(${appname} "${appname}_fl_build")
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources OPTIONAL
         DESTINATION ${${appname}_INSTALL_PATH}/)
 if (NOT CMAKE_BUILD_TYPE MATCHES "debug|Debug|DEBUG")
+    add_dependencies("${appname}_app.so" "${appname}_fl_build")
     add_dependencies(${appname} "${appname}_app.so")
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${appname}_app.so OPTIONAL
             DESTINATION ${${appname}_INSTALL_PATH}/bin
